@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════════════
+   NexRes Hub — Design Tokens
+   All primitive values live here.
+   Nothing here produces visible CSS — only variables.
+═══════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Color: Base Palette ── */
+  --void:         #050810;
+  --deep:         #0a0e1a;
+  --surface:      #0f1629;
+  --panel:        #141c2e;
+  --card:         #1a2340;
+  --card-hover:   #1e2a4a;
+  --border:       #1e2d4a;
+  --border-bright:#2a3f6a;
+
+  /* ── Color: Brand Accents ── */
+  --gold:         #d4a853;
+  --gold-dim:     #8a6830;
+  --gold-glow:    rgba(212, 168, 83, 0.15);
+
+  --cyan:         #00d4aa;
+  --cyan-dim:     #005540;
+  --cyan-glow:    rgba(0, 212, 170, 0.12);
+
+  --violet:       #7c6fcd;
+  --violet-dim:   rgba(124, 111, 205, 0.20);
+
+  --rose:         #e05c7a;
+  --rose-dim:     rgba(224, 92, 122, 0.15);
+
+  --amber:        #f59e0b;
+  --emerald:      #10b981;
+
+  /* ── Color: Text ── */
+  --text:         #dde4f0;
+  --text-muted:   #6b7fa3;
+  --text-faint:   #3a4a6a;
+
+  /* ── Spacing ── */
+  --sp-xs:  4px;
+  --sp-sm:  8px;
+  --sp-md:  12px;
+  --sp-lg:  18px;
+  --sp-xl:  24px;
+  --sp-2xl: 32px;
+
+  /* ── Border Radius ── */
+  --radius:    10px;
+  --radius-sm:  6px;
+  --radius-xs:  4px;
+
+  /* ── Typography: Families ── */
+  --font-display: 'Cinzel', serif;
+  --font-body:    'Source Serif 4', Georgia, serif;
+  --font-mono:    'IBM Plex Mono', monospace;
+
+  /* ── Typography: Sizes ── */
+  --text-xs:   9px;
+  --text-sm:  11px;
+  --text-md:  13px;
+  --text-lg:  15px;
+  --text-xl:  18px;
+  --text-2xl: 22px;
+
+  /* ── Layout: Widths ── */
+  --sidebar-w:  220px;
+  --copilot-w:  290px;
+
+  /* ── Transitions ── */
+  --transition-fast: 0.18s ease;
+  --transition-med:  0.25s ease;
+
+  /* ── Shadows ── */
+  --shadow-gold:   0 4px 16px rgba(212, 168, 83, 0.30);
+  --shadow-cyan:   0 4px 16px rgba(0, 212, 170, 0.30);
+  --shadow-violet: 0 4px 16px rgba(124, 111, 205, 0.30);
+}

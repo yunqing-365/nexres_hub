@@ -1,0 +1,188 @@
+/* ═══════════════════════════════════════════════════════
+   NexRes Hub — Themes & Motion
+   Scrollbars · Animations · Copilot message styles
+   · Knowledge map · Context chips
+═══════════════════════════════════════════════════════ */
+
+/* ─── GLOBAL SCROLLBAR ─── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+/* ─── COPILOT COMPONENTS ─── */
+.copilot-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--cyan-dim));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.copilot-name   { font-family: var(--font-display); font-size: 13px; color: var(--text); }
+.copilot-status { font-family: var(--font-mono); font-size: 9px; color: var(--cyan); letter-spacing: 0.1em; }
+
+/* Context mode chips */
+.context-bar {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.context-chip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: 1px solid var(--border-bright);
+  color: var(--text-faint);
+  transition: all var(--transition-fast);
+}
+.context-chip:hover,
+.context-chip.active {
+  border-color: var(--violet);
+  color: var(--violet);
+  background: var(--violet-dim);
+}
+
+/* Message bubbles */
+.msg {
+  margin-bottom: 13px;
+  animation: fadeUp 0.3s ease;
+}
+
+.msg-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.msg-label.ai   { color: var(--violet); }
+.msg-label.sys  { color: var(--cyan); }
+.msg-label.user { color: var(--gold); }
+
+.msg-body {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+.msg-body strong { color: var(--gold); font-weight: 600; }
+.msg-body em     { color: var(--cyan); font-style: normal; }
+.msg-body .hint {
+  background: rgba(212,168,83,0.08);
+  border-left: 2px solid var(--gold-dim);
+  padding: 6px 10px;
+  margin-top: 7px;
+  border-radius: 0 4px 4px 0;
+  font-size: 11px;
+}
+
+/* Copilot input */
+.copilot-input {
+  flex: 1;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-bright);
+  border-radius: 5px;
+  padding: 7px 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.copilot-input:focus       { border-color: var(--violet); }
+.copilot-input::placeholder{ color: var(--text-faint); }
+
+.copilot-send {
+  width: 30px; height: 30px;
+  border-radius: 5px;
+  background: rgba(124,111,205,0.18);
+  border: 1px solid rgba(124,111,205,0.3);
+  color: var(--violet);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+}
+.copilot-send:hover { background: rgba(124,111,205,0.32); }
+
+/* ─── KNOWLEDGE MAP NODES ─── */
+.kmap-container { position: relative; height: 280px; overflow: hidden; }
+.kmap-node {
+  position: absolute;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.25s;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.kmap-node:hover { transform: scale(1.08); z-index: 5; }
+.kmap-svg { position: absolute; inset: 0; pointer-events: none; }
+
+/* ─── PAPER LIST ROW ─── */
+.paper-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.paper-row:hover { background: rgba(0,212,170,0.04); border-radius: 6px; padding-left: 8px; }
+.paper-num  { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); width: 22px; flex-shrink: 0; margin-top: 1px; }
+.paper-info { flex: 1; }
+.paper-title{ font-size: 13px; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.paper-meta { font-size: 11px; color: var(--text-muted); font-style: italic; }
+.paper-tags { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+.paper-score {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gold);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ─── METHOD DETAIL PANEL ─── */
+.method-detail-panel {
+  background: var(--card);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  padding: 22px;
+  margin-top: 16px;
+}
+
+/* ─── SEARCH INPUT ─── */
+.search-input {
+  flex: 1;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.search-input:focus { border-color: var(--cyan); }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

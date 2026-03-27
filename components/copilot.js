@@ -6,7 +6,7 @@
 ═══════════════════════════════════════════════════════ */
 
 import { sendMessage, MODE_PROMPTS } from '../utils/api.js';
-import { mdToHtml } from '../utils/storage.js';
+import { mdToHtml } from '../utils/formatters.js';   // Bug Fix #1 & #2
 
 /* ── State ── */
 let _currentMode = 'tutor';
@@ -19,6 +19,7 @@ const MODE_LABELS = {
   brainstorm: '头脑风暴',
   socratic:   '苏格拉底',
   peer:       '同伴',
+  reviewer:   '期刊编辑',   // Bug Fix #3: 补全缺失模式
 };
 
 /* ── Render ── */

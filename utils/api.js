@@ -8,6 +8,25 @@ const API_ENDPOINT = 'https://api.anthropic.com/v1/messages';
 const MODEL        = 'claude-sonnet-4-20250514';
 const MAX_TOKENS   = 1000;
 
+/* ── API Key 管理（Bug Fix #4: 浏览器端直调需要用户提供 Key）── */
+let _apiKey = localStorage.getItem('nexres:apiKey') ?? '';
+
+export function setApiKey(key) {
+  _apiKey = key.trim();
+  localStorage.setItem('nexres:apiKey', _apiKey);
+}
+export function getApiKey() { return _apiKey; }
+export function hasApiKey()  { return _apiKey.length > 0; }
+
+function _headers() {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': _apiKey,
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true',
+  };
+}
+
 /* ── Copilot Mode Prompts ── */
 export const MODE_PROMPTS = {
   tutor: `你是一位经验丰富的学术导师，专精经济学、计量统计和机器学习。
@@ -62,7 +81,7 @@ export async function sendMessage(userMessage, mode = 'tutor', options = {}) {
 
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: _headers(),
     body: JSON.stringify({
       model: MODEL,
       max_tokens: MAX_TOKENS,
@@ -95,7 +114,7 @@ export async function quickAsk(prompt, systemOverride = '') {
 
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: _headers(),
     body: JSON.stringify({
       model: MODEL,
       max_tokens: MAX_TOKENS,

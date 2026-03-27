@@ -15,8 +15,10 @@ const NAV_ITEMS = [
   { id: 'explog',     icon: '◫', label: '实验记录本',   section: null,    badge: 'NEW', badgeClass: 'new' },
   { id: 'llm',        icon: '◇', label: 'LLM 竞技场',  section: null },
   // output
-  { id: 'writing',    icon: '✦', label: '论文工坊',     section: '创作与输出', badge: 'NEW', badgeClass: 'new' },
-  { id: 'skillmap',   icon: '▷', label: '技能图谱',     section: null },
+  { id: 'writing',   icon: '✦', label: '论文工坊',   section: '创作与输出', badge: 'NEW', badgeClass: 'new' },
+  { id: 'skillmap',  icon: '▷', label: '技能图谱',   section: null },
+  // data
+  { id: 'datahub',   icon: '⊞', label: '数据中心',   section: '数据管理', badge: 'NEW', badgeClass: 'new' },
 ];
 
 function renderSidebar() {

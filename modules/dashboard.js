@@ -6,6 +6,7 @@
 
 import { renderBar }    from '../utils/charts.js';
 import { statCard, card } from '../components/card.js';
+import { setApiKey, hasApiKey } from '../utils/api.js';
 
 const CONTAINER = 'module-dashboard';
 
@@ -91,6 +92,45 @@ export function init() {
 
   // Render chart after DOM is ready
   requestAnimationFrame(_renderWeekChart);
+
+  // Show API key prompt if not yet configured
+  setTimeout(_checkApiKey, 800);
+}
+
+function _checkApiKey() {
+  if (hasApiKey()) return;
+  const notice = document.createElement('div');
+  notice.id = 'apikey-notice';
+  notice.style.cssText = [
+    'position:fixed','bottom:24px','right:316px','z-index:999',
+    'background:var(--surface-2)','border:1px solid var(--gold)',
+    'border-radius:10px','padding:14px 18px','max-width:300px',
+    'font-size:12px','color:var(--text-normal)',
+    'box-shadow:0 4px 24px rgba(0,0,0,0.5)',
+  ].join(';');
+  notice.innerHTML = `
+    <div style="font-weight:600;color:var(--gold);margin-bottom:8px;">⚙️ 配置 Claude API Key</div>
+    <div style="color:var(--text-faint);margin-bottom:10px;line-height:1.5;">
+      输入 Anthropic API Key 启用 AI 功能<br>
+      <span style="font-size:10px;">Key 仅存储在本地 localStorage，不上传</span>
+    </div>
+    <input id="apikey-input" type="password" placeholder="sk-ant-api03-..."
+      class="copilot-input" style="width:100%;margin-bottom:8px;font-size:11px;">
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" style="flex:1;"
+        onclick="window.__dashboard?.saveApiKey()">✓ 保存</button>
+      <button class="btn btn-ghost btn-sm"
+        onclick="document.getElementById('apikey-notice')?.remove()">稍后</button>
+    </div>`;
+  document.body.appendChild(notice);
+}
+
+function saveApiKey() {
+  const k = document.getElementById('apikey-input')?.value.trim() ?? '';
+  if (!k.startsWith('sk-')) { alert('Key 格式不正确，应以 sk- 开头'); return; }
+  setApiKey(k);
+  document.getElementById('apikey-notice')?.remove();
+  window.__copilot?.addMessage('sys', '✅ API Key 已配置，AI 功能已就绪！');
 }
 
 function _renderWeekChart() {
@@ -114,4 +154,4 @@ function setMode(mode) {
   window.__copilot?.addMessage('sys', `已切换为 <strong>${labels[mode]}</strong> 模式，相关工具和建议将针对性调整。`);
 }
 
-window.__dashboard = { init, setMode };
+window.__dashboard = { init, setMode, saveApiKey };

@@ -36,15 +36,24 @@ export function init() {
         <div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px;font-family:var(--font-mono);">研究方法</div>
           <select id="ef-method" style="width:100%;">
-            <option>双重差分 (DID)</option>
-            <option>工具变量 (IV)</option>
-            <option>断点回归 (RDD)</option>
-            <option>倾向得分匹配 (PSM)</option>
-            <option>随机森林</option>
-            <option>卷积神经网络</option>
-            <option>Transformer</option>
-            <option>线性回归 (OLS)</option>
-          </select>
+  <optgroup label="统计与计量">
+    <option>双重差分 (DID)</option>
+    <option>工具变量 (IV)</option>
+  </optgroup>
+  <optgroup label="AI 与前沿计算">
+    <option>图神经网络 (GNN)</option>
+    <option>Transformer</option>
+    <option>卷积神经网络</option>
+  </optgroup>
+  <optgroup label="物理与数值计算">
+    <option>最速下降/共轭梯度优化</option>
+    <option>PDE / 差分方程求解</option>
+  </optgroup>
+  <optgroup label="硬件与控制">
+    <option>RTOS 任务时序仿真</option>
+    <option>STM32 中断响应测试</option>
+  </optgroup>
+</select>
         </div>
         <div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px;font-family:var(--font-mono);">所属项目</div>

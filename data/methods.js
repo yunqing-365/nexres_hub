@@ -189,6 +189,63 @@ export const METHODS = [
     pitfalls: ['结果对初始条件和参数敏感（"调参游戏"风险）', '难以识别真实因果机制'],
     relatedMethods: ['gametheory', 'systemdynamics'],
   },
+  {
+    id: 'gnn',
+    icon: '🕸',
+    name: '图神经网络 (GNN)',
+    shortName: 'GNN',
+    desc: '处理非欧式空间数据，适用于分子结构、社交网络及复杂系统拓扑分析。',
+    tags: ['ml', 'comp'],
+    color: 'violet',
+    difficulty: 'hard',
+    dataType: '图结构/网络拓扑数据',
+    software: ['Python (PyG, DGL)', 'MATLAB'],
+    assumptions: [
+      { id: 'homo', label: '同质性假设', status: 'theoretical', desc: '相连节点倾向于拥有相同的标签或特征（Homophily）' }
+    ],
+    formulae: ['h_v^{(l+1)} = σ(W^{(l)} · AGG({h_u^{(l)} : u ∈ N(v)} ∪ {h_v^{(l)}}))'],
+    keyRefs: ['Kipf & Welling (2017)', 'Hamilton et al. (2017)'],
+    pitfalls: ['层数过深容易导致过平滑 (Over-smoothing) 现象'],
+    relatedMethods: ['transformer']
+  },
+  {
+    id: 'num_opt',
+    icon: '📉',
+    name: '数值优化算法',
+    shortName: '数值计算',
+    desc: '使用迭代法寻找泛函极值（如最速下降法、共轭梯度法），是物理方程（如 Gross-Pitaevskii）求解与科学计算的基础。',
+    tags: ['comp', 'theory'],
+    color: 'cyan',
+    difficulty: 'medium',
+    dataType: '数学模型/参数矩阵',
+    software: ['MATLAB', 'Python (SciPy)', 'C++ (Eigen)'],
+    assumptions: [
+      { id: 'conv', label: '凸性/收敛性', status: 'checkable', desc: '目标函数需满足一定的平滑和凸性条件以保证全局收敛' }
+    ],
+    formulae: ['x_{k+1} = x_k + α_k p_k (共轭梯度方向)'],
+    keyRefs: ['Nocedal & Wright (2006) - Numerical Optimization'],
+    pitfalls: ['病态矩阵 (Ill-conditioned) 会导致最速下降法呈现严重的锯齿状震荡（Zig-zagging）'],
+    relatedMethods: ['ml']
+  },
+  {
+    id: 'rtos',
+    icon: '⏱',
+    name: 'RTOS 任务调度分析',
+    shortName: '嵌入式控制',
+    desc: '针对底层硬件（如 STM32）的多任务并发调度、中断响应、优先级分配与时序验证。',
+    tags: ['comp'],
+    color: 'gold',
+    difficulty: 'hard',
+    dataType: '硬件时序/日志数据',
+    software: ['C/C++ (FreeRTOS)', 'SystemView', 'Keil/STM32CubeIDE'],
+    assumptions: [
+      { id: 'rt', label: '硬实时性保证', status: 'checkable', desc: '高优先级任务必须在截止时间内（Deadline）完成响应' }
+    ],
+    formulae: ['R_i = C_i + ∑_{j ∈ hp(i)} ⌈R_i / T_j⌉ C_j (响应时间分析)'],
+    keyRefs: ['Liu & Layland (1973)'],
+    pitfalls: ['设计不当引发优先级反转 (Priority Inversion) 或死锁'],
+    relatedMethods: ['abm']
+  },
 ];
 
 /** 根据 id 获取单个方法 */

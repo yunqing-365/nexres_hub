@@ -21,6 +21,7 @@ export function init() {
       </div>
     </div>
 
+
     <div class="module-tabs">
       <div class="module-tab active" data-tab="gd"
         onclick="window.__mllab?.switchTab('gd',this)">梯度下降</div>
@@ -28,19 +29,22 @@ export function init() {
         onclick="window.__mllab?.switchTab('overfit',this)">过拟合探索</div>
       <div class="module-tab" data-tab="arch"
         onclick="window.__mllab?.switchTab('arch',this)">网络架构</div>
+     <div class="module-tab" data-tab="optim"
+      onclick="window.__mllab?.switchTab('optim',this)">数值优化 (共轭梯度)</div>
     </div>
 
     <div id="ml-gd">      ${_gdHTML()}</div>
     <div id="ml-overfit"  style="display:none;">${_overfitHTML()}</div>
     <div id="ml-arch"     style="display:none;">${_archHTML()}</div>`;
-
+    <div id="ml-optim" style="display:none;">${_optimHTML()}</div>
   _initEpochMeter();
   _renderBaseline();
 }
 
 /* ── Tab switching ── */
 function switchTab(tab, el) {
-  ['gd', 'overfit', 'arch'].forEach(t => {
+  // 增加 'optim' 到数组中
+  ['gd', 'overfit', 'arch', 'optim'].forEach(t => {
     document.getElementById(`ml-${t}`).style.display = t === tab ? '' : 'none';
   });
   document.querySelectorAll(`#${CONTAINER} .module-tab`).forEach(t => t.classList.remove('active'));
@@ -48,6 +52,7 @@ function switchTab(tab, el) {
   if (tab === 'gd') { _initEpochMeter(); _renderBaseline(); }
   if (tab === 'overfit') _initOverfit();
   if (tab === 'arch') _initArch();
+  if (tab === 'optim') _initOptim(); // 新增这行
 }
 
 /* ════════════════════════════════
@@ -513,7 +518,109 @@ function drawArch() {
     `总参数量：${params.toLocaleString()} · 层结构：[${layers.join(', ')}]`;
 }
 
+/* ════════════════════════════════
+   TAB 4 — 数值优化 (最速下降 vs 共轭梯度)
+════════════════════════════════ */
+function _optimHTML() {
+  return `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">算法寻优轨迹对比</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">
+          在求解物理稳态方程（如 Gross-Pitaevskii 方程）或训练大模型时，算法选择极其重要。<br>
+          尝试对比在极度狭长（Ill-conditioned）的等高线地形下，两种数值方法的收敛效率。
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+          <button class="btn btn-rose" onclick="window.__mllab?.runOptim('steepest')">▶ 最速下降法</button>
+          <button class="btn btn-cyan" onclick="window.__mllab?.runOptim('cg')">▶ 共轭梯度法</button>
+          <button class="btn btn-ghost" onclick="window.__mllab?.resetOptim()">↺ 重置地形</button>
+        </div>
+        <div id="optim-explanation" style="margin-top:20px;font-size:12px;color:var(--text-muted);">
+          点击上方按钮观察算法演进轨迹...
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title violet">优化地形等高线 (Contour Map)</div>
+        <div id="ml-optim-chart" style="height:280px;"></div>
+      </div>
+    </div>`;
+}
+
+let _lastSD = null, _lastCG = null;
+
+function _initOptim() {
+  _renderOptimContour();
+}
+
+function _renderOptimContour(pathSD = null, pathCG = null) {
+  // 生成一个病态的二次型矩阵等高线 z = x^2 + 10y^2
+  const x = Array.from({length: 60}, (_, i) => -2.5 + i * 5/59);
+  const y = Array.from({length: 60}, (_, i) => -2.5 + i * 5/59);
+  const z = y.map(yVal => x.map(xVal => 0.5 * (xVal*xVal + 15*yVal*yVal))); 
+
+  const traces = [{
+    z: z, x: x, y: y,
+    type: 'contour',
+    colorscale: 'Viridis',
+    showscale: false,
+    contours: { coloring: 'lines', start: 0, end: 20, size: 1.5 }
+  }];
+
+  if (pathSD) {
+    traces.push({
+      x: pathSD.x, y: pathSD.y,
+      mode: 'lines+markers', name: '最速下降 (Zig-zag)',
+      line: { color: '#e05c7a', width: 2 }, marker: { size: 5 }
+    });
+  }
+  if (pathCG) {
+    traces.push({
+      x: pathCG.x, y: pathCG.y,
+      mode: 'lines+markers', name: '共轭梯度 (CG)',
+      line: { color: '#00d4aa', width: 2 }, marker: { size: 6, symbol: 'diamond' }
+    });
+  }
+
+  Plotly.newPlot('ml-optim-chart', traces, {
+    ...BASE_LAYOUT, margin: {t:10, b:24, l:24, r:10},
+    xaxis: { ...BASE_LAYOUT.xaxis, range: [-2.2, 2.2] },
+    yaxis: { ...BASE_LAYOUT.yaxis, range: [-2.2, 2.2] },
+    showlegend: true, legend: { font: { size: 10 }, bgcolor: 'transparent', x: 0, y: 1 }
+  }, BASE_CONFIG);
+}
+
+function runOptim(method) {
+  const path = {x: [], y: []};
+  // 统一初始点
+  let cx = -2.0, cy = 1.8;
+  path.x.push(cx); path.y.push(cy);
+
+  if (method === 'steepest') {
+    // 模拟最速下降的锯齿震荡特性
+    for(let i=0; i<15; i++) {
+      cx = cx * 0.5; cy = -cy * 0.5;
+      path.x.push(cx); path.y.push(cy);
+    }
+    _lastSD = path;
+    document.getElementById('optim-explanation').innerHTML = `📉 <strong>最速下降法：</strong>沿着局部梯度下降，但在狭长地形（如高度非线性的 PDE 中）会产生严重的锯齿状震荡，收敛极慢。`;
+  } else {
+    // 模拟共轭梯度法快速抵达极小值
+    path.x.push(-0.4); path.y.push(-0.1); // 中间正交步骤
+    path.x.push(0); path.y.push(0);       // 直达原点
+    _lastCG = path;
+    document.getElementById('optim-explanation').innerHTML = `🚀 <strong>共轭梯度法：</strong>利用历史梯度构造共轭方向。理论上 N 维二次型最多 N 步即可精确收敛，非常适合求解大型稀疏系统。`;
+  }
+  _renderOptimContour(_lastSD, _lastCG);
+}
+
+function resetOptim() {
+  _lastSD = null; _lastCG = null;
+  _renderOptimContour();
+  document.getElementById('optim-explanation').innerHTML = '点击上方按钮观察算法演进轨迹...';
+}
+
 window.__mllab = {
   init, switchTab, updateParam, runGD, resetGD,
   updateOverfit, runOverfit, resetOverfit, drawArch,
+  runOptim, resetOptim // 暴露新增的数值优化函数
 };

@@ -35,19 +35,33 @@ export function init() {
         </div>
         <div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px;font-family:var(--font-mono);">研究方法</div>
-          <select id="ef-method" style="width:100%;">
-  <optgroup label="统计与计量">
+<select id="ef-method" style="width:100%;">
+  <optgroup label="统计与因果推断">
     <option>双重差分 (DID)</option>
+    <option>倾向得分匹配 (PSM)</option>
+    <option>合成控制法 (SCM)</option>
+    <option>断点回归 (RDD)</option>
     <option>工具变量 (IV)</option>
   </optgroup>
-  <optgroup label="AI 与前沿计算">
+  <optgroup label="质性与理论研究">
+    <option>单/多案例研究分析</option>
+    <option>扎根理论 (三级编码)</option>
+    <option>话语分析 / 文本细读</option>
+    <option>博弈论均衡推导</option>
+  </optgroup>
+  <optgroup label="计算与前沿模型">
+    <option>Transformer / LLM</option>
     <option>图神经网络 (GNN)</option>
+    <option>随机森林 / GBDT</option>
     <option>Transformer</option>
     <option>卷积神经网络</option>
   </optgroup>
-  <optgroup label="物理与数值计算">
+  <optgroup label="物理与控制系统">
+    <option>数值方程求解优化</option>
+    <option>系统动力学仿真</option>
     <option>最速下降/共轭梯度优化</option>
     <option>PDE / 差分方程求解</option>
+  </optgroup>
   </optgroup>
   <optgroup label="硬件与控制">
     <option>RTOS 任务时序仿真</option>

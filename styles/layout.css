@@ -253,3 +253,10 @@ body::before {
   gap: 7px;
   flex-shrink: 0;
 }
+
+/* 在 layout.css 的任意位置添加： */
+#sidebar-root, #copilot-root {
+  display: flex;
+  height: 100%;
+  flex-shrink: 0;
+}

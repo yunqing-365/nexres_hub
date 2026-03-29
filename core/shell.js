@@ -28,7 +28,7 @@ const MODULE_INITS = {
   skillmap:   () => window.__skillmap?.init(),
   datahub:    () => window.__datahub?.init(),
   dllab:      () => window.__dllab?.init(),
-  qualstudio: () => window.__qualstudio?.init(),
+  qualstudio: () => window.__qualStudio?.init(),
   fintech:    () => window.__fintech?.init(),
   resdesign:  () => window.__resdesign?.init(),
   derivatives: () => window.__derivatives?.init(),
@@ -39,7 +39,11 @@ const MODULE_INITS = {
   'sensor-dsp': () => window.__sensorDSP?.init(),
   'lit-matrix': () => window.__litMatrix?.init(),
   'academic-compiler': () => window.__academicCompiler?.init(),
-
+  
+  'causal-ml':    () => window.__causalML?.init(),
+  'agent-sim':    () => window.__agentSim?.init(),
+  'llm-measure':  () => window.__llmMeasure?.init(),
+  'network-econ': () => window.__networkEcon?.init(),
 };
 
 /* ── State ── */

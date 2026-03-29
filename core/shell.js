@@ -15,20 +15,22 @@ import { setCurrentModule } from '../components/copilot.js';
 /* ── Module registry ── */
 // Each module exports an `init()` that renders its content.
 // The shell calls init() the FIRST time a tab is visited.
+
+// 修改 core/shell.js 中的 MODULE_INITS
 const MODULE_INITS = {
   dashboard:  () => window.__dashboard?.init(),
   literature: () => window.__literature?.init(),
   methods:    () => window.__methods?.init(),
+  'research-design': () => window.__researchDesign?.init(), // ← NEW
   ml:         () => window.__mllab?.init(),
+  'dl-lab':   () => window.__dllab?.init(),                 // ← NEW
   explog:     () => window.__explog?.init(),
   llm:        () => window.__llmarena?.init(),
   writing:    () => window.__writing?.init(),
   skillmap:   () => window.__skillmap?.init(),
-  datahub:    () => window.__datahub?.init(),
-  dllab:      () => window.__dllab?.init(),
-  qualstudio: () => window.__qualstudio?.init(),
-  fintech:    () => window.__fintech?.init(),
-  resdesign:  () => window.__resdesign?.init(),
+  'qual-studio': () => window.__qualStudio?.init(),         // ← NEW
+  fintech:    () => window.__fintech?.init(),               // ← NEW
+  datahub:    () => window.__datahub?.init(),   
 };
 
 /* ── State ── */

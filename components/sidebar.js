@@ -5,26 +5,30 @@
 ═══════════════════════════════════════════════════════ */
 
 /** Nav item definitions — drives rendering and routing */
+
+
+// 修改 components/sidebar.js 中的 NAV_ITEMS 数组
 const NAV_ITEMS = [
-  // workbench
-  { id: 'dashboard',   icon: '◈', label: '总览大盘',       section: '工作台' },
-  { id: 'literature',  icon: '◎', label: '文献星系',       section: null },
-  { id: 'methods',     icon: '⟁', label: '研究方法库',     section: null },
-  { id: 'resdesign',   icon: '◉', label: '研究设计助手',   section: null, badge: 'NEW', badgeClass: 'new' },
-  // lab
-  { id: 'ml',          icon: '⬡', label: 'ML 实验室',     section: '实验工坊' },
-  { id: 'dllab',       icon: '◈', label: '深度学习实验室', section: null, badge: 'NEW', badgeClass: 'new' },
-  { id: 'explog',      icon: '◫', label: '实验记录本',     section: null },
-  { id: 'llm',         icon: '◇', label: 'LLM 竞技场',    section: null },
-  // output
-  { id: 'writing',     icon: '✦', label: '论文工坊',       section: '创作与输出' },
-  { id: 'skillmap',    icon: '▷', label: '技能图谱',       section: null },
-  // research tools
-  { id: 'qualstudio',  icon: '⬕', label: '质性研究工作台', section: '研究工具', badge: 'NEW', badgeClass: 'new' },
-  { id: 'fintech',     icon: '◬', label: '金融科技模块',   section: null, badge: 'NEW', badgeClass: 'new' },
-  // data
-  { id: 'datahub',     icon: '⊞', label: '数据中心',       section: '数据管理' },
+  // 工作台
+  { id: 'dashboard',  icon: '◈', label: '总览大盘',     section: '工作台' },
+  { id: 'literature', icon: '◎', label: '文献星系',     section: null,    badge: '12篇' },
+  { id: 'methods',    icon: '⟁', label: '研究方法库',   section: null },
+  { id: 'research-design', icon: '✦', label: '研究设计助手', section: null, badge: 'NEW', badgeClass: 'new' }, // ← NEW
+  // 实验工坊
+  { id: 'ml',         icon: '⬡', label: 'ML 实验室',   section: '实验工坊' },
+  { id: 'dl-lab',     icon: '◈', label: '深度学习实验室', section: null, badge: 'NEW', badgeClass: 'new' }, // ← NEW
+  { id: 'explog',     icon: '◫', label: '实验记录本',   section: null },
+  { id: 'llm',        icon: '◇', label: 'LLM 竞技场',  section: null },
+  // 创作与输出
+  { id: 'writing',   icon: '✦', label: '论文工坊',   section: '创作与输出' },
+  { id: 'skillmap',  icon: '▷', label: '技能图谱',   section: null },
+  // 研究工具 (新分组)
+  { id: 'qual-studio', icon: '◎', label: '质性研究工作台', section: '研究工具', badge: 'NEW', badgeClass: 'new' }, // ← NEW
+  { id: 'fintech',     icon: '⬡', label: '金融科技模块',   section: null, badge: 'NEW', badgeClass: 'new' }, // ← NEW
+  // 数据管理
+  { id: 'datahub',   icon: '⊞', label: '数据中心',   section: '数据管理' },
 ];
+
 
 function renderSidebar() {
   const root = document.getElementById('sidebar-root');

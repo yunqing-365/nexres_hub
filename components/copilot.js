@@ -61,15 +61,24 @@ function renderCopilot() {
         </div>
       </div>
 
-      <div class="copilot-input-area">
-        <input
-          class="copilot-input"
-          id="copilot-in"
-          placeholder="问 Nexus 任何问题…"
-          onkeydown="if(event.key==='Enter') window.__copilot?.send()"
-        >
-        <button class="copilot-send" onclick="window.__copilot?.send()">↑</button>
-      </div>
+    
+      <div class="copilot-input-area" style="flex-direction: column; gap: 8px; background: var(--panel);">
+        <div style="display:flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+           <span style="font-size: 10px; color: var(--text-faint);">Shift+Enter 换行 / Enter 发送</span>
+           <button class="btn btn-ghost btn-sm" style="font-size: 10px; padding: 2px 6px;" onclick="window.__copilot?.clearChat()">清空历史</button>
+        </div>
+        <div style="display:flex; gap: 7px; align-items: flex-end;">
+          <textarea
+            class="copilot-input"
+            id="copilot-in"
+            placeholder="问 Nexus 任何问题..."
+            rows="1"
+            style="resize: none; overflow-y: auto; min-height: 36px; max-height: 150px; line-height: 1.5; padding: 8px 10px;"
+            oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px';"
+            onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); window.__copilot?.send(); }"
+          ></textarea>
+          <button class="copilot-send" style="height: 36px; width: 36px; flex-shrink: 0;" onclick="window.__copilot?.send()">↑</button>
+        </div>
     </div>`;
 }
 

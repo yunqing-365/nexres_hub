@@ -16,6 +16,8 @@ import { setCurrentModule } from '../components/copilot.js';
 // Each module exports an `init()` that renders its content.
 // The shell calls init() the FIRST time a tab is visited.
 const MODULE_INITS = {
+  workflow:   () => window.__workflow?.init(),
+  dashboard:  () => window.__dashboard?.init(),
   dashboard:  () => window.__dashboard?.init(),
   literature: () => window.__literature?.init(),
   methods:    () => window.__methods?.init(),
@@ -29,6 +31,15 @@ const MODULE_INITS = {
   qualstudio: () => window.__qualstudio?.init(),
   fintech:    () => window.__fintech?.init(),
   resdesign:  () => window.__resdesign?.init(),
+  derivatives: () => window.__derivatives?.init(),
+  'agent-studio': () => window.__agentStudio?.init(),
+  'causal-engine': () => window.__causalEngine?.init(),
+  'xai-studio': () => window.__xaiStudio?.init(),
+  'bayesian-lab': () => window.__bayesianLab?.init(),
+  'sensor-dsp': () => window.__sensorDSP?.init(),
+  'lit-matrix': () => window.__litMatrix?.init(),
+  'academic-compiler': () => window.__academicCompiler?.init(),
+
 };
 
 /* ── State ── */

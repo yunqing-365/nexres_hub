@@ -1,9 +1,12 @@
 /* ═══════════════════════════════════════════════════════
    data/experiments.js — Experiment Log Database
-   Export: EXPERIMENTS (array), addExperiment(), markBest()
+   Persisted to localStorage. Falls back to built-in defaults.
+   Export: EXPERIMENTS, addExperiment(), markBest(), deleteExperiment()
 ═══════════════════════════════════════════════════════ */
 
-export let EXPERIMENTS = [
+import { storage, KEYS } from '../utils/storage.js';
+
+const DEFAULTS = [
   {
     id: 1,
     name: 'DID 基准回归 v1',
@@ -76,30 +79,52 @@ export let EXPERIMENTS = [
   },
 ];
 
-let _nextId = EXPERIMENTS.length + 1;
+/* ── Load from storage, fall back to defaults ── */
+export let EXPERIMENTS = storage.get(KEYS.EXPERIMENTS, DEFAULTS);
+EXPERIMENTS = EXPERIMENTS.map(e => ({ ...e, id: Number(e.id) }));
+
+let _nextId = EXPERIMENTS.length > 0 ? Math.max(...EXPERIMENTS.map(e => e.id)) + 1 : 1;
+
+function _save() {
+  storage.set(KEYS.EXPERIMENTS, EXPERIMENTS);
+}
 
 /**
- * 新增实验记录
- * @param {Object} entry - { name, method, project, params, result, notes }
+ * 新增实验记录，持久化到 localStorage
+ * @param {Object} entry - { name, method, project, params, result, notes, ... }
  */
 export function addExperiment(entry) {
   const newExp = {
-    id: _nextId++,
     status: '完成',
     best: false,
     createdAt: new Date().toISOString().slice(0, 10),
     r2: null,
     obs: null,
+    notes: '',
+    code: '',
+    runResult: '',
     ...entry,
+    id: _nextId++,
   };
   EXPERIMENTS.push(newExp);
+  _save();
   return newExp;
 }
 
-/** 将某条记录标为最优，同项目其他记录取消最优标记 */
+/** 将某条记录标为最优，同项目其他记录取消最优标记，持久化 */
 export function markBest(id, project) {
   EXPERIMENTS = EXPERIMENTS.map(e => ({
     ...e,
-    best: e.id === id ? true : (e.project === project ? false : e.best),
+    best: e.id === Number(id) ? true : (e.project === project ? false : e.best),
   }));
+  _save();
+}
+
+/**
+ * 删除实验记录
+ * @param {number} id
+ */
+export function deleteExperiment(id) {
+  EXPERIMENTS = EXPERIMENTS.filter(e => e.id !== Number(id));
+  _save();
 }

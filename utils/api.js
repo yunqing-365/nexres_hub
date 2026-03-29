@@ -1,14 +1,13 @@
 /* ═══════════════════════════════════════════════════════
-   utils/api.js — Claude API Wrapper
-   Handles: mode system prompts · message history
-            streaming (future) · error states
+   utils/api.js — DeepSeek API Wrapper (OpenAI-compatible)
+   Handles: mode system prompts · message history · error states
 ═══════════════════════════════════════════════════════ */
 
-const API_ENDPOINT = 'https://api.anthropic.com/v1/messages';
-const MODEL        = 'claude-sonnet-4-20250514';
+const API_ENDPOINT = 'http://localhost:3001/chat/completions';
+const MODEL        = 'deepseek-chat';
 const MAX_TOKENS   = 1000;
 
-/* ── API Key 管理（Bug Fix #4: 浏览器端直调需要用户提供 Key）── */
+/* ── API Key 管理 ── */
 let _apiKey = localStorage.getItem('nexres:apiKey') ?? '';
 
 export function setApiKey(key) {
@@ -20,10 +19,8 @@ export function hasApiKey()  { return _apiKey.length > 0; }
 
 function _headers() {
   return {
-    'Content-Type': 'application/json',
-    'x-api-key': _apiKey,
-    'anthropic-version': '2023-06-01',
-    'anthropic-dangerous-direct-browser-access': 'true',
+    'Content-Type':  'application/json',
+    'Authorization': `Bearer ${_apiKey}`,
   };
 }
 
@@ -54,23 +51,21 @@ export const MODE_PROMPTS = {
 写作的清晰度和学术规范。给出 3 条具体的修改建议。回答控制在 250 字以内。`,
 };
 
-/** 当前会话的消息历史（多轮对话） */
+/* ── 消息历史（多轮对话） ── */
 let _history = [];
 
-/** 清空历史（切换项目/模式时调用） */
 export function clearHistory() {
   _history = [];
 }
 
 /**
- * 向 Claude 发送消息，返回响应文本
- * @param {string} userMessage  - 用户消息
- * @param {string} mode         - 'tutor' | 'critic' | 'brainstorm' | 'socratic' | 'peer' | 'reviewer'
- * @param {Object} [options]    - { extraContext: string }  注入额外上下文（当前模块名等）
- * @returns {Promise<string>}   - AI 回复文本
+ * 发送消息，返回响应文本
+ * @param {string} userMessage
+ * @param {string} mode
+ * @param {Object} [options] - { extraContext: string }
+ * @returns {Promise<string>}
  */
 export async function sendMessage(userMessage, mode = 'tutor', options = {}) {
-  // 可选：在 userMessage 前注入上下文
   const fullMessage = options.extraContext
     ? `[当前上下文: ${options.extraContext}]\n\n${userMessage}`
     : userMessage;
@@ -79,14 +74,19 @@ export async function sendMessage(userMessage, mode = 'tutor', options = {}) {
 
   const systemPrompt = MODE_PROMPTS[mode] ?? MODE_PROMPTS.tutor;
 
+  // DeepSeek / OpenAI 格式：system 放在 messages 数组第一条
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ..._history,
+  ];
+
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
     headers: _headers(),
     body: JSON.stringify({
-      model: MODEL,
+      model:      MODEL,
       max_tokens: MAX_TOKENS,
-      system: systemPrompt,
-      messages: _history,
+      messages,
     }),
   });
 
@@ -95,8 +95,9 @@ export async function sendMessage(userMessage, mode = 'tutor', options = {}) {
     throw new Error(err?.error?.message ?? `HTTP ${response.status}`);
   }
 
-  const data = await response.json();
-  const reply = data.content?.[0]?.text ?? '（无响应）';
+  const data  = await response.json();
+  // OpenAI 兼容格式：choices[0].message.content
+  const reply = data.choices?.[0]?.message?.content ?? '（无响应）';
 
   _history.push({ role: 'assistant', content: reply });
 
@@ -104,10 +105,7 @@ export async function sendMessage(userMessage, mode = 'tutor', options = {}) {
 }
 
 /**
- * 快速单次问答（不记入历史，不受模式影响）
- * 用于模块内的 "AI 解析" 按钮等场景
- * @param {string} prompt
- * @param {string} systemOverride - 自定义 system prompt（可选）
+ * 快速单次问答（不记入历史）
  */
 export async function quickAsk(prompt, systemOverride = '') {
   const system = systemOverride || '你是一位经济学和机器学习领域的专家，用简洁中文回答学术问题，200 字以内。';
@@ -116,10 +114,12 @@ export async function quickAsk(prompt, systemOverride = '') {
     method: 'POST',
     headers: _headers(),
     body: JSON.stringify({
-      model: MODEL,
+      model:      MODEL,
       max_tokens: MAX_TOKENS,
-      system,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system',  content: system },
+        { role: 'user',    content: prompt },
+      ],
     }),
   });
 
@@ -128,10 +128,9 @@ export async function quickAsk(prompt, systemOverride = '') {
   }
 
   const data = await response.json();
-  return data.content?.[0]?.text ?? '（无响应）';
+  return data.choices?.[0]?.message?.content ?? '（无响应）';
 }
 
-/** 获取当前历史副本（供调试或导出） */
 export function getHistory() {
   return [..._history];
 }

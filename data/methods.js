@@ -24,6 +24,14 @@ export const METHODS = [
     keyRefs: ['Callaway & Sant\'Anna (2021)', 'de Chaisemartin & D\'Haultfœuille (2020)'],
     pitfalls: ['异质性处理效应可能导致估计量无因果解释', '预期效应（anticipation effect）违反平行趋势'],
     relatedMethods: ['psm', 'scm', 'iv'],
+    checks: [
+      { id: 'parallel_trend', label: '平行趋势检验',   desc: '事件研究图，检验处理前各期系数在统计上不显著', required: true },
+      { id: 'placebo_time',   label: '安慰剂检验（时间）', desc: '将处理时间提前若干期，系数应不显著',           required: true },
+      { id: 'placebo_group',  label: '安慰剂检验（组别）', desc: '随机分配处理组，系数应不显著',                 required: true },
+      { id: 'dynamic_did',    label: '动态 DID',        desc: '估计各期处理效应，观察动态变化趋势',             required: false },
+      { id: 'hetero',         label: '异质性处理效应',   desc: '按子组分析，检验效应是否在不同群体间存在差异',   required: false },
+      { id: 'staggered',      label: '交错 DID 检验',   desc: '若处理时间不同，使用 Callaway-Sant\'Anna 估计量', required: false },
+    ],
   },
   {
     id: 'iv',
@@ -45,9 +53,14 @@ export const METHODS = [
     keyRefs: ['Angrist & Pischke (2009)', 'Imbens & Angrist (1994)'],
     pitfalls: ['弱工具变量导致估计不稳定', '局部平均处理效应 (LATE) ≠ 平均处理效应 (ATE)'],
     relatedMethods: ['did', 'ols'],
+    checks: [
+      { id: 'first_stage',  label: '第一阶段 F 统计量', desc: 'F > 10 为强工具变量，F < 10 需报告弱工具变量稳健标准误', required: true },
+      { id: 'overid',       label: '过度识别检验',      desc: '多个工具变量时用 Sargan-Hansen J 检验排他性约束',        required: false },
+      { id: 'endogeneity',  label: '内生性检验',        desc: 'Hausman 检验，比较 OLS 与 IV 估计量是否显著不同',         required: true },
+      { id: 'placebo_iv',   label: '安慰剂检验',        desc: '用工具变量对不应受影响的结果变量回归，系数应不显著',      required: true },
+      { id: 'weak_robust',  label: '弱工具变量稳健推断', desc: '使用 Anderson-Rubin 或 CLR 检验，不依赖强工具变量假设', required: false },
+    ],
   },
-  {
-    id: 'rdd',
     icon: '◁',
     name: '断点回归 (RDD)',
     shortName: 'RDD',
@@ -66,9 +79,15 @@ export const METHODS = [
     keyRefs: ['Imbens & Lemieux (2008)', 'Calonico et al. (2014)'],
     pitfalls: ['带宽选择对结果有重要影响', '结果仅适用于阈值附近（外部有效性有限）'],
     relatedMethods: ['iv', 'did'],
+    checks: [
+      { id: 'mccrary',     label: 'McCrary 密度检验',  desc: '检验得分变量在阈值处是否有密度跳跃，排除操纵',           required: true },
+      { id: 'covariate',   label: '协变量平衡检验',    desc: '阈值两侧协变量应连续，无显著跳跃',                       required: true },
+      { id: 'bandwidth',   label: '带宽敏感性检验',    desc: '使用不同带宽重复估计，结果应稳健',                       required: true },
+      { id: 'placebo_cut', label: '虚假断点检验',      desc: '在非真实阈值处估计，系数应不显著',                       required: true },
+      { id: 'donut',       label: 'Donut RDD',         desc: '排除阈值附近观测值重新估计，检验操纵稳健性',             required: false },
+      { id: 'poly_order',  label: '多项式阶数稳健性',  desc: '使用不同阶数局部多项式，结果应一致',                     required: false },
+    ],
   },
-  {
-    id: 'transformer',
     icon: '◇',
     name: 'Transformer / Self-Attention',
     shortName: 'Transformer',
@@ -87,6 +106,12 @@ export const METHODS = [
     keyRefs: ['Vaswani et al. (2017)', 'Brown et al. (2020) — GPT-3'],
     pitfalls: ['二次方计算复杂度限制长序列处理', '过度依赖大量标注数据或预训练语料'],
     relatedMethods: ['rf', 'cnn'],
+    checks: [
+      { id: 'train_val_split', label: '训练/验证集划分', desc: '确保无数据泄露，时序数据用时间顺序划分',            required: true },
+      { id: 'baseline',        label: '基准模型对比',    desc: '与简单基准（线性回归/随机猜测）对比，确认模型有效', required: true },
+      { id: 'overfit_check',   label: '过拟合检验',      desc: '训练集与验证集性能差距不应过大',                    required: true },
+      { id: 'ablation',        label: '消融实验',        desc: '逐步移除组件，验证各部分贡献',                      required: false },
+    ],
   },
   {
     id: 'rf',
@@ -127,9 +152,13 @@ export const METHODS = [
     keyRefs: ['Devlin et al. (2019) — BERT', 'Blei et al. (2003) — LDA'],
     pitfalls: ['预训练模型存在语言偏见（bias）', '因果推断需要额外识别策略，不能仅靠文本关联'],
     relatedMethods: ['transformer', 'rf'],
+    checks: [
+      { id: 'irr',         label: '评分者间信度 (IRR)', desc: 'Cohen\'s Kappa > 0.7 为可接受，> 0.8 为良好',          required: true },
+      { id: 'corpus_repr', label: '语料代表性检验',     desc: '描述语料来源、时间范围、覆盖群体，说明代表性',         required: true },
+      { id: 'valid_sample', label: '验证集标注',        desc: '随机抽取 10% 样本人工复核，与模型结果对比',            required: false },
+      { id: 'bias_check',  label: '偏见/偏差检验',      desc: '检查模型在不同子群体上的表现差异',                     required: false },
+    ],
   },
-  {
-    id: 'interview',
     icon: '⬕',
     name: '深度访谈 / 扎根理论',
     shortName: '访谈/GT',
@@ -147,6 +176,12 @@ export const METHODS = [
     keyRefs: ['Glaser & Strauss (1967)', 'Charmaz (2006)'],
     pitfalls: ['样本量小，外部有效性有限', '编码过程主观性需通过多人编码提高可靠性'],
     relatedMethods: ['casestudy', 'ethnography'],
+    checks: [
+      { id: 'saturation',   label: '理论饱和验证',   desc: '记录每轮访谈新增概念数量，趋近零时停止',               required: true },
+      { id: 'member_check', label: '成员检验',        desc: '将初步分析结果反馈给受访者确认，提高效度',             required: true },
+      { id: 'multi_coder',  label: '多人编码一致性',  desc: '至少两人独立编码，计算 Cohen\'s Kappa',               required: true },
+      { id: 'audit_trail',  label: '审计追踪',        desc: '记录所有分析决策和备忘录，确保可追溯性',               required: false },
+    ],
   },
   {
     id: 'gametheory',
@@ -245,6 +280,66 @@ export const METHODS = [
     keyRefs: ['Liu & Layland (1973)'],
     pitfalls: ['设计不当引发优先级反转 (Priority Inversion) 或死锁'],
     relatedMethods: ['abm']
+  },
+  {
+    id: 'scm',
+    icon: '📉',
+    name: '合成控制法 (SCM)',
+    shortName: 'SCM',
+    desc: '通过对多个对照组个体进行加权，构造一个虚拟的“合成对照组”，常用于单一干预对象的政策评估。',
+    tags: ['causal', 'econometric'],
+    color: 'gold',
+    difficulty: 'hard',
+    dataType: '面板数据 (N较小, T较大)',
+    software: ['R (Synth, augsynth)', 'Stata (synth)'],
+    assumptions: [
+      { id: 'fit', label: '拟合优度', status: 'checkable', desc: '干预前合成组与处理组的趋势和特征必须高度一致' },
+      { id: 'nospi', label: '无溢出效应', status: 'theoretical', desc: '干预不能影响到用于构造合成池的个体' }
+    ],
+    formulae: ['W^* = argmin ||X_1 - X_0 W||_V'],
+    keyRefs: ['Abadie et al. (2010)'],
+    pitfalls: ['对照组池 (Donor pool) 选择存在主观性', '干预前时期太短会导致严重过拟合'],
+    relatedMethods: ['did', 'psm']
+  },
+  {
+    id: 'psm',
+    icon: '⚖',
+    name: '倾向得分匹配 (PSM)',
+    shortName: 'PSM',
+    desc: '通过估计个体接受干预的概率（倾向得分），寻找特征相似的对照组，以缓解选择偏差。',
+    tags: ['causal', 'econometric'],
+    color: 'cyan',
+    difficulty: 'medium',
+    dataType: '截面数据 / 面板数据',
+    software: ['Stata (psmatch2)', 'R (MatchIt)'],
+    assumptions: [
+      { id: 'cia', label: '条件独立假设', status: 'theoretical', desc: '控制可观测变量后，潜在结果与干预状态独立（无不可观测的混淆变量）' },
+      { id: 'cs', label: '共同支撑假设', status: 'checkable', desc: '处理组和对照组的倾向得分分布必须有足够的重叠区域' }
+    ],
+    formulae: ['e(x) = Pr(D=1 | X=x)', 'ATT = E[Y_1 | D=1] - E[Y_0 | e(X), D=1]'],
+    keyRefs: ['Rosenbaum & Rubin (1983)'],
+    pitfalls: ['无法解决由不可观测变量引起的内生性问题', '盲目匹配可能反而加剧协变量不平衡'],
+    relatedMethods: ['did']
+  },
+  {
+    id: 'casestudy',
+    icon: '📂',
+    name: '多案例研究 (Case Study)',
+    shortName: '案例研究',
+    desc: '通过多源证据（访谈、档案、观察）对特定情境下的复杂现象进行深入剖析，旨在构建或验证理论。',
+    tags: ['qual'],
+    color: 'rose',
+    difficulty: 'medium',
+    dataType: '多源定性数据 (访谈录音、文本、档案)',
+    software: ['NVivo', 'MAXQDA', 'Atlas.ti'],
+    assumptions: [
+      { id: 'tri', label: '三角印证 (Triangulation)', status: 'checkable', desc: '需要来自不同来源的证据相互印证以提高构念效度' },
+      { id: 'rep', label: '逻辑复制', status: 'theoretical', desc: '多案例研究应遵循理论复制法则，而非统计抽样逻辑' }
+    ],
+    formulae: [],
+    keyRefs: ['Yin (2014) - Case Study Research', 'Eisenhardt (1989)'],
+    pitfalls: ['容易沦为纯粹的轶事叙述而缺乏理论贡献', '研究者主观偏见容易严重影响数据解读'],
+    relatedMethods: ['interview']
   },
 ];
 

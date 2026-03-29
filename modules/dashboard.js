@@ -1,21 +1,16 @@
 /* ═══════════════════════════════════════════════════════
    modules/dashboard.js — Dashboard Module
-   Renders: stat cards · project list · daily plan · weekly chart
+   Renders: flow guide · stat cards · real projects · daily plan
    Lifecycle: init() called by shell on tab switch
 ═══════════════════════════════════════════════════════ */
 
-import { renderBar }    from '../utils/charts.js';
 import { statCard, card } from '../components/card.js';
 import { setApiKey, hasApiKey } from '../utils/api.js';
+import { PROJECTS, addProject } from '../data/projects.js';
+import { PAPERS } from '../data/papers.js';
+import { EXPERIMENTS } from '../data/experiments.js';
 
 const CONTAINER = 'module-dashboard';
-
-/* ── Static data (replace with storage in full impl) ── */
-const PROJECTS = [
-  { name: '气候政策对企业 ESG 评分的因果效应', tags: ['DID / PSM', '定量'],   colors: ['gold', 'cyan'],  progress: 65, target: 'methods' },
-  { name: 'ResNet-50 卫星图像贫困指数预测',    tags: ['Deep Learning', '计算'], colors: ['violet', 'emerald'], progress: 90, target: 'ml' },
-  { name: '大模型在经济政策解读中的能力边界',   tags: ['LLM Eval', '进行中'],   colors: ['rose', 'cyan'],  progress: 30, target: 'writing' },
-];
 
 const DAILY_PLAN = [
   { done: true,  text: '<strong>文献综述</strong> — 补充 3 篇 DiD 相关文献，更新引用' },
@@ -24,10 +19,18 @@ const DAILY_PLAN = [
   { done: false, text: '<strong>写作</strong> — 完善方法论章节（预计 500 字）' },
 ];
 
+const TAG_COLORS = ['gold', 'cyan', 'violet', 'rose', 'emerald'];
+
 /* ── Render ── */
 export function init() {
   const root = document.getElementById(CONTAINER);
   if (!root) return;
+  _render(root);
+  setTimeout(_checkApiKey, 800);
+}
+
+function _render(root) {
+  const activeProjects = PROJECTS.filter(p => p.status !== 'done');
 
   root.innerHTML = `
     <div class="page-header">
@@ -46,57 +49,165 @@ export function init() {
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="grid-4" style="margin-bottom:16px;">
-      ${statCard({ num: '3',  label: '进行中项目',  change: '↑ 本周新增 1', accent: 'gold',   onclick: "window.__shell?.switchTab('methods')" })}
-      ${statCard({ num: '47', label: '归档文献',    change: '↑ 本周 +8 篇', accent: 'cyan',   onclick: "window.__shell?.switchTab('literature')" })}
-      ${statCard({ num: '24', label: '实验记录',    change: '↑ 今日 +3 条', accent: 'violet', onclick: "window.__shell?.switchTab('explog')" })}
-      ${statCard({ num: '2',  label: '论文草稿',    change: '⏱ 距 DDL 18天', accent: 'rose',  onclick: "window.__shell?.switchTab('writing')" })}
+    <!-- Research flow guide -->
+    <div class="card" style="margin-bottom:16px;padding:12px 16px;">
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-faint);letter-spacing:0.15em;margin-bottom:10px;">研究流程</div>
+      <div style="display:flex;align-items:center;gap:0;overflow-x:auto;">
+        ${[
+          { id:'literature', icon:'◎', label:'文献',  step:1 },
+          { id:'datahub',    icon:'⊞', label:'数据',  step:2 },
+          { id:'methods',    icon:'⟁', label:'方法',  step:3 },
+          { id:'explog',     icon:'◫', label:'实验',  step:4 },
+          { id:'writing',    icon:'✦', label:'写作',  step:5 },
+        ].map((s, i, arr) => `
+          <div style="display:flex;align-items:center;flex-shrink:0;">
+            <div onclick="window.__shell?.switchTab('${s.id}')"
+              style="display:flex;flex-direction:column;align-items:center;gap:4px;
+                     padding:8px 14px;border-radius:8px;cursor:pointer;
+                     border:1px solid var(--border);background:var(--surface-2);
+                     transition:all 0.15s;"
+              onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.color=''">
+              <span style="font-size:16px;">${s.icon}</span>
+              <span style="font-size:10px;font-family:var(--font-mono);">${s.step}. ${s.label}</span>
+            </div>
+            ${i < arr.length - 1 ? `<div style="width:24px;height:1px;background:var(--border);flex-shrink:0;"></div>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Stats (live from data) -->
+    <div class="grid-3" style="margin-bottom:16px;">
+      ${statCard({ num: String(activeProjects.length), label: '进行中项目', change: `共 ${PROJECTS.length} 个项目`, accent: 'gold', onclick: "document.getElementById('dash-projects')?.scrollIntoView({behavior:'smooth'})" })}
+      ${statCard({ num: String(PAPERS.length),      label: '归档文献',   change: '点击进入文献库', accent: 'cyan',   onclick: "window.__shell?.switchTab('literature')" })}
+      ${statCard({ num: String(EXPERIMENTS.length), label: '实验记录',   change: '点击查看全部',   accent: 'violet', onclick: "window.__shell?.switchTab('explog')" })}
     </div>
 
     <div class="grid-2">
-      ${card({
-        title: '活跃研究项目',
-        content: PROJECTS.map(p => `
-          <div class="project-item" onclick="window.__shell?.switchTab('${p.target}')">
-            <div class="project-name">${p.name}</div>
-            <div class="project-meta">
-              ${p.tags.map((t, i) => `<span class="tag tag-${p.colors[i]}">${t}</span>`).join('')}
-            </div>
-            <div class="project-progress">
-              <div class="project-progress-fill" style="width:${p.progress}%;background:var(--${p.colors[0]});"></div>
-            </div>
-          </div>`).join(''),
-      })}
+      <!-- Projects (real data) -->
+      <div>
+        ${card({
+          title: '活跃研究项目',
+          id: 'dash-projects',
+          content: `
+            ${activeProjects.length === 0
+              ? '<div style="text-align:center;color:var(--text-faint);padding:24px;">暂无项目，点击下方新建</div>'
+              : activeProjects.map(p => _projectCard(p)).join('')
+            }
+            <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;justify-content:center;"
+              onclick="window.__dashboard?.showNewProjectForm()">
+              + 新建项目
+            </button>
+            <div id="new-project-form" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+              ${_newProjectFormHTML()}
+            </div>`,
+        })}
+      </div>
 
-      ${card({
-        title: '今日科研计划',
-        titleColor: 'cyan',
-        content: DAILY_PLAN.map((item, i) => `
-          <div class="sg-item${item.done ? ' sg-done' : ''}" style="border:none;padding:8px 0;">
-            <div class="sg-num">${['①','②','③','④'][i]}</div>
-            <div class="sg-text">${item.text}</div>
-          </div>`).join('') +
-          `<button class="btn btn-ghost btn-sm" style="margin-top:8px;"
-            onclick="window.__copilot?.askCopilot('帮我优化今日科研计划，让每项任务更具体、可执行')">
-            🤖 AI 优化计划
-          </button>`,
-      })}
-    </div>
-
-    ${card({
-      title: '本周科研进展',
-      id: 'dash-chart-card',
-      content: '<div id="dash-chart" style="height:160px;"></div>',
-    })}`;
-
-  // Render chart after DOM is ready
-  requestAnimationFrame(_renderWeekChart);
-
-  // Show API key prompt if not yet configured
-  setTimeout(_checkApiKey, 800);
+      <!-- Daily plan -->
+      <div>
+        ${card({
+          title: '今日科研计划',
+          titleColor: 'cyan',
+          content: DAILY_PLAN.map((item, i) => `
+            <div class="sg-item${item.done ? ' sg-done' : ''}" style="border:none;padding:8px 0;">
+              <div class="sg-num">${['①','②','③','④'][i]}</div>
+              <div class="sg-text">${item.text}</div>
+            </div>`).join('') +
+            `<button class="btn btn-ghost btn-sm" style="margin-top:8px;"
+              onclick="window.__copilot?.askCopilot('帮我优化今日科研计划，让每项任务更具体、可执行', '', true)">
+              🤖 AI 优化计划
+            </button>`,
+        })}
+      </div>
+    </div>`;
 }
 
+function _projectCard(p) {
+  const colors = (p.tags ?? []).map((_, i) => TAG_COLORS[i % TAG_COLORS.length]);
+  const statusColor = { active: 'cyan', paused: 'gold', done: 'emerald' }[p.status] ?? 'cyan';
+  const paperCount = (p.paperIds ?? []).length;
+  const expCount   = (p.expIds ?? []).length;
+
+  return `
+    <div class="project-item" style="cursor:default;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div class="project-name" style="flex:1;">${p.name}</div>
+        <span class="tag tag-${statusColor}" style="flex-shrink:0;font-size:9px;">
+          ${{ active:'进行中', paused:'暂停', done:'完成' }[p.status] ?? p.status}
+        </span>
+      </div>
+      ${p.desc ? `<div style="font-size:11px;color:var(--text-faint);margin:4px 0 6px;">${p.desc}</div>` : ''}
+      <div class="project-meta" style="margin-bottom:8px;">
+        ${(p.tags ?? []).map((t, i) => `<span class="tag tag-${colors[i]}">${t}</span>`).join('')}
+        <span class="tag tag-violet" style="margin-left:4px;">📄 ${paperCount} 篇</span>
+        <span class="tag tag-gold"   style="margin-left:2px;">🧪 ${expCount} 条</span>
+      </div>
+      <div class="project-progress">
+        <div class="project-progress-fill" style="width:${p.progress ?? 0}%;background:var(--${colors[0] ?? 'cyan'});"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;"
+          onclick="window.__shell?.switchTab('literature')">文献</button>
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;"
+          onclick="window.__shell?.switchTab('explog')">实验</button>
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;"
+          onclick="window.__shell?.switchTab('writing')">写作</button>
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;color:var(--rose);margin-left:auto;"
+          onclick="window.__dashboard?.deleteProject(${p.id})">删除</button>
+      </div>
+    </div>`;
+}
+
+function _newProjectFormHTML() {
+  return `
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <input id="np-name" class="copilot-input" placeholder="项目名称 *">
+      <input id="np-desc" class="copilot-input" placeholder="简介（可选）">
+      <input id="np-tags" class="copilot-input" placeholder="标签，逗号分隔（如：DID, 定量）">
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn btn-primary btn-sm" onclick="window.__dashboard?.saveNewProject()">保存</button>
+        <button class="btn btn-ghost btn-sm"   onclick="window.__dashboard?.hideNewProjectForm()">取消</button>
+      </div>
+    </div>`;
+}
+
+/* ── Project actions ── */
+function showNewProjectForm() {
+  document.getElementById('new-project-form').style.display = 'block';
+  document.getElementById('np-name')?.focus();
+}
+
+function hideNewProjectForm() {
+  document.getElementById('new-project-form').style.display = 'none';
+}
+
+function saveNewProject() {
+  const name = document.getElementById('np-name')?.value.trim();
+  if (!name) { alert('请填写项目名称'); return; }
+  const desc = document.getElementById('np-desc')?.value.trim() ?? '';
+  const tagsRaw = document.getElementById('np-tags')?.value.trim() ?? '';
+  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+  addProject({ name, desc, tags });
+
+  // re-render dashboard to show new project
+  const root = document.getElementById(CONTAINER);
+  if (root) _render(root);
+  window.__copilot?.addMessage('sys', `✓ 项目「<strong>${name}</strong>」已创建。`);
+}
+
+function deleteProject(id) {
+  const { deleteProject: del } = window.__projects ?? {};
+  // import dynamically since we can't use top-level await
+  import('../data/projects.js').then(({ deleteProject: delFn }) => {
+    delFn(id);
+    const root = document.getElementById(CONTAINER);
+    if (root) _render(root);
+  });
+}
+
+/* ── API Key ── */
 function _checkApiKey() {
   if (hasApiKey()) return;
   const notice = document.createElement('div');
@@ -133,25 +244,12 @@ function saveApiKey() {
   window.__copilot?.addMessage('sys', '✅ API Key 已配置，AI 功能已就绪！');
 }
 
-function _renderWeekChart() {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  renderBar(
-    'dash-chart',
-    [
-      { x: days, y: [2,3,1,4,2,5,3], type: 'bar', name: '文献阅读', marker: { color: 'rgba(0,212,170,0.6)',   line: { color: '#00d4aa', width: 1 } } },
-      { x: days, y: [1,2,1,2,1,2,1], type: 'bar', name: '实验运行', marker: { color: 'rgba(212,168,83,0.6)',  line: { color: '#d4a853', width: 1 } } },
-      { x: days, y: [0,1,0,1,0,2,1], type: 'bar', name: '写作小时', marker: { color: 'rgba(124,111,205,0.6)', line: { color: '#7c6fcd', width: 1 } } },
-    ],
-    {
-      legend: { font: { size: 10 }, bgcolor: 'transparent', orientation: 'h', y: -0.2 },
-      margin: { t: 8, b: 40, l: 30, r: 8 },
-    },
-  );
-}
-
 function setMode(mode) {
   const labels = { quant: '定量研究', qual: '定性研究', comp: '计算研究', theory: '理论研究' };
   window.__copilot?.addMessage('sys', `已切换为 <strong>${labels[mode]}</strong> 模式，相关工具和建议将针对性调整。`);
 }
 
-window.__dashboard = { init, setMode, saveApiKey };
+window.__dashboard = {
+  init, setMode, saveApiKey,
+  showNewProjectForm, hideNewProjectForm, saveNewProject, deleteProject,
+};

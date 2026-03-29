@@ -43,5 +43,6 @@ export const KEYS = {
   DRAFTS:      'drafts',
   SKILL_DATA:  'skillData',
   SETTINGS:    'settings',
-  DATASETS:    'datasets',   // 新增：数据集管理
+  DATASETS:    'datasets',
+  PROJECTS:    'projects',
 };

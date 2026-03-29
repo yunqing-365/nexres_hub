@@ -7,6 +7,10 @@
 
 <!-- External Libraries -->
 <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
 
@@ -33,7 +37,11 @@
   <div id="module-llm"        class="module"></div>
   <div id="module-writing"    class="module"></div>
   <div id="module-skillmap"   class="module"></div>
-  <div id="module-datahub"   class="module"></div>   <!-- 新增：数据中心 -->
+  <div id="module-datahub"    class="module"></div>
+  <div id="module-dllab"      class="module"></div>
+  <div id="module-qualstudio" class="module"></div>
+  <div id="module-fintech"    class="module"></div>
+  <div id="module-resdesign"  class="module"></div>
 
 </div>
 
@@ -45,7 +53,8 @@
 <script type="module" src="data/methods.js"></script>
 <script type="module" src="data/experiments.js"></script>
 <script type="module" src="data/writing.js"></script>
-<script type="module" src="data/datasources.js"></script>  <!-- 新增 -->
+<script type="module" src="data/datasources.js"></script>
+<script type="module" src="data/projects.js"></script>
 
 <!-- ─── Utils ─── -->
 <script type="module" src="utils/api.js"></script>
@@ -67,7 +76,11 @@
 <script type="module" src="modules/llm-arena.js"></script>
 <script type="module" src="modules/writing.js"></script>
 <script type="module" src="modules/skill-map.js"></script>
-<script type="module" src="modules/data-hub.js"></script>  <!-- 新增 -->
+<script type="module" src="modules/data-hub.js"></script>
+<script type="module" src="modules/dl-lab.js"></script>
+<script type="module" src="modules/qual-studio.js"></script>
+<script type="module" src="modules/fintech.js"></script>
+<script type="module" src="modules/research-design.js"></script>
 
 <!-- ─── App Shell (router — must load last) ─── -->
 <script type="module" src="core/shell.js"></script>

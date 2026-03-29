@@ -1,9 +1,13 @@
 /* ═══════════════════════════════════════════════════════
    data/papers.js — Literature Database
-   Export: PAPERS (array), getPaperById(), filterPapers()
+   Persisted to localStorage. Falls back to built-in defaults.
+   Export: PAPERS, getPaperById(), filterPapers(),
+           addPaper(), updatePaper(), deletePaper()
 ═══════════════════════════════════════════════════════ */
 
-export const PAPERS = [
+import { storage, KEYS } from '../utils/storage.js';
+
+const DEFAULTS = [
   {
     id: 1,
     title: "Mostly Harmless Econometrics: An Empiricist's Companion",
@@ -118,9 +122,21 @@ export const PAPERS = [
   },
 ];
 
+/* ── Load from storage, fall back to defaults ── */
+export let PAPERS = storage.get(KEYS.PAPERS, DEFAULTS);
+
+/* ensure ids are numbers after JSON round-trip */
+PAPERS = PAPERS.map(p => ({ ...p, id: Number(p.id) }));
+
+let _nextId = PAPERS.length > 0 ? Math.max(...PAPERS.map(p => p.id)) + 1 : 1;
+
+function _save() {
+  storage.set(KEYS.PAPERS, PAPERS);
+}
+
 /** 根据 id 获取单篇论文 */
 export function getPaperById(id) {
-  return PAPERS.find(p => p.id === id) ?? null;
+  return PAPERS.find(p => p.id === Number(id)) ?? null;
 }
 
 /**
@@ -140,4 +156,48 @@ export function filterPapers(query = '', type = 'all', year = null) {
     const matchY = !year || p.year === year;
     return matchQ && matchT && matchY;
   });
+}
+
+/**
+ * 新增文献，自动分配 id，持久化到 localStorage
+ * @param {Object} entry
+ * @returns {Object} 新增的文献对象
+ */
+export function addPaper(entry) {
+  const paper = {
+    doi: '',
+    tags: [],
+    type: 'causal',
+    score: 8.0,
+    abstract: '',
+    notes: '',
+    citedBy: 0,
+    ...entry,
+    id: _nextId++,
+    year: Number(entry.year) || new Date().getFullYear(),
+  };
+  PAPERS.push(paper);
+  _save();
+  return paper;
+}
+
+/**
+ * 更新文献字段
+ * @param {number} id
+ * @param {Object} patch
+ */
+export function updatePaper(id, patch) {
+  const idx = PAPERS.findIndex(p => p.id === Number(id));
+  if (idx === -1) return;
+  PAPERS[idx] = { ...PAPERS[idx], ...patch };
+  _save();
+}
+
+/**
+ * 删除文献
+ * @param {number} id
+ */
+export function deletePaper(id) {
+  PAPERS = PAPERS.filter(p => p.id !== Number(id));
+  _save();
 }

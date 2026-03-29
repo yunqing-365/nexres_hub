@@ -24,7 +24,11 @@ const MODULE_INITS = {
   llm:        () => window.__llmarena?.init(),
   writing:    () => window.__writing?.init(),
   skillmap:   () => window.__skillmap?.init(),
-  datahub:    () => window.__datahub?.init(),   // 数据中心
+  datahub:    () => window.__datahub?.init(),
+  dllab:      () => window.__dllab?.init(),
+  qualstudio: () => window.__qualstudio?.init(),
+  fintech:    () => window.__fintech?.init(),
+  resdesign:  () => window.__resdesign?.init(),
 };
 
 /* ── State ── */

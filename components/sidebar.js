@@ -7,18 +7,23 @@
 /** Nav item definitions — drives rendering and routing */
 const NAV_ITEMS = [
   // workbench
-  { id: 'dashboard',  icon: '◈', label: '总览大盘',     section: '工作台' },
-  { id: 'literature', icon: '◎', label: '文献星系',     section: null,    badge: '12篇' },
-  { id: 'methods',    icon: '⟁', label: '研究方法库',   section: null,    badge: 'NEW', badgeClass: 'new' },
+  { id: 'dashboard',   icon: '◈', label: '总览大盘',       section: '工作台' },
+  { id: 'literature',  icon: '◎', label: '文献星系',       section: null },
+  { id: 'methods',     icon: '⟁', label: '研究方法库',     section: null },
+  { id: 'resdesign',   icon: '◉', label: '研究设计助手',   section: null, badge: 'NEW', badgeClass: 'new' },
   // lab
-  { id: 'ml',         icon: '⬡', label: 'ML 实验室',   section: '实验工坊' },
-  { id: 'explog',     icon: '◫', label: '实验记录本',   section: null,    badge: 'NEW', badgeClass: 'new' },
-  { id: 'llm',        icon: '◇', label: 'LLM 竞技场',  section: null },
+  { id: 'ml',          icon: '⬡', label: 'ML 实验室',     section: '实验工坊' },
+  { id: 'dllab',       icon: '◈', label: '深度学习实验室', section: null, badge: 'NEW', badgeClass: 'new' },
+  { id: 'explog',      icon: '◫', label: '实验记录本',     section: null },
+  { id: 'llm',         icon: '◇', label: 'LLM 竞技场',    section: null },
   // output
-  { id: 'writing',   icon: '✦', label: '论文工坊',   section: '创作与输出', badge: 'NEW', badgeClass: 'new' },
-  { id: 'skillmap',  icon: '▷', label: '技能图谱',   section: null },
+  { id: 'writing',     icon: '✦', label: '论文工坊',       section: '创作与输出' },
+  { id: 'skillmap',    icon: '▷', label: '技能图谱',       section: null },
+  // research tools
+  { id: 'qualstudio',  icon: '⬕', label: '质性研究工作台', section: '研究工具', badge: 'NEW', badgeClass: 'new' },
+  { id: 'fintech',     icon: '◬', label: '金融科技模块',   section: null, badge: 'NEW', badgeClass: 'new' },
   // data
-  { id: 'datahub',   icon: '⊞', label: '数据中心',   section: '数据管理', badge: 'NEW', badgeClass: 'new' },
+  { id: 'datahub',     icon: '⊞', label: '数据中心',       section: '数据管理' },
 ];
 
 function renderSidebar() {

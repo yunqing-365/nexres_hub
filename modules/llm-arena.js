@@ -4,7 +4,7 @@
              dual-model comparison · academic benchmark
 ═══════════════════════════════════════════════════════ */
 
-import { estimateTokens } from '../utils/storage.js';
+import { estimateTokens } from '../utils/formatters.js';
 
 const CONTAINER = 'module-llm';
 
@@ -148,7 +148,7 @@ export function init() {
           </div>`).join('')}
         <div style="margin-top:8px;padding-top:10px;border-top:1px solid var(--border);">
           <button class="btn btn-ghost btn-sm"
-            onclick="window.__copilot?.askCopilot('对于学术研究场景，如何选择合适的 LLM？速度和深度如何权衡？')">
+            onclick="window.__copilot?.askCopilot('对于学术研究场景，如何选择合适的 LLM？速度和深度如何权衡？', 'LLM竞技场', true)">
             🤖 如何选择 LLM？
           </button>
         </div>
@@ -257,7 +257,8 @@ function runArena() {
     // AI commentary after both finish
     window.__copilot?.askCopilot(
       `在以下场景中，轻量模型（7B）和大模型（70B）的回答质量差异是什么？什么时候应该选择哪个？\n场景：${prompt.slice(0, 100)}`,
-      'LLM 竞技场'
+      'LLM 竞技场',
+      true
     );
   }, 3000 + Math.random() * 500);
 }

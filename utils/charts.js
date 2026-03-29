@@ -82,8 +82,74 @@ export function renderRadar(containerId, r, theta, color = '#00d4aa') {
 }
 
 /**
- * Loss 曲面 + 下降路径（ML Lab 专用）
+ * 系数图 / Forest Plot（实验记录可视化专用）
+ * @param {string} containerId
+ * @param {Array}  entries  - [{ label, coef, lower, upper, color? }]
+ * @param {Object} layoutOverride
  */
+export function renderCoefPlot(containerId, entries, layoutOverride = {}) {
+  const colors = entries.map(e => e.color ?? '#00d4aa');
+
+  const traces = [
+    // 置信区间横线
+    ...entries.map((e, i) => ({
+      x: [e.lower, e.upper],
+      y: [e.label, e.label],
+      mode: 'lines',
+      line: { color: colors[i], width: 2 },
+      showlegend: false,
+      hoverinfo: 'skip',
+    })),
+    // 系数点
+    {
+      x: entries.map(e => e.coef),
+      y: entries.map(e => e.label),
+      mode: 'markers',
+      marker: {
+        size: 10,
+        color: colors,
+        symbol: 'diamond',
+        line: { color: '#0a1628', width: 1.5 },
+      },
+      text: entries.map(e => `β = ${e.coef?.toFixed(3)}<br>95% CI: [${e.lower?.toFixed(3)}, ${e.upper?.toFixed(3)}]`),
+      hovertemplate: '%{text}<extra></extra>',
+      showlegend: false,
+    },
+    // 零线
+    {
+      x: [0, 0],
+      y: [-0.5, entries.length - 0.5],
+      mode: 'lines',
+      line: { color: '#e05c7a', width: 1.5, dash: 'dash' },
+      showlegend: false,
+      hoverinfo: 'skip',
+    },
+  ];
+
+  Plotly.newPlot(
+    containerId,
+    traces,
+    {
+      ...BASE_LAYOUT,
+      height: Math.max(160, entries.length * 52 + 60),
+      margin: { t: 16, b: 40, l: 140, r: 20 },
+      xaxis: {
+        ...BASE_LAYOUT.xaxis,
+        title: '系数估计值',
+        zeroline: true,
+        zerolinecolor: '#e05c7a',
+        zerolinewidth: 1,
+      },
+      yaxis: {
+        ...BASE_LAYOUT.yaxis,
+        autorange: 'reversed',
+        tickfont: { size: 11 },
+      },
+      ...layoutOverride,
+    },
+    BASE_CONFIG,
+  );
+}
 export function renderGradientDescent(containerId, pathW, pathLoss, lambda = 0, diverged = false) {
   const bgW    = Array.from({ length: 100 }, (_, i) => -5 + i * 0.1);
   const bgLoss = bgW.map(x => x * x + lambda * x * x);

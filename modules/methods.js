@@ -160,35 +160,108 @@ function showDetail(id) {
           }).join('')}
         </div>` : ''}
 
+      <!-- Checks section -->
+      ${m.checks?.length ? `
+        <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.15em;text-transform:uppercase;">
+              ✓ 检验清单
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="checks-progress-${m.id}" style="font-family:var(--font-mono);font-size:11px;color:var(--cyan);">
+                ${_checksProgress(m)}
+              </span>
+              <button class="btn btn-ghost btn-sm" onclick="window.__methods?.reportChecks('${m.id}')">
+                🤖 生成检验报告
+              </button>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            ${m.checks.map(c => {
+              const checked = _isChecked(m.id, c.id);
+              return `
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;
+                  border-radius:6px;border:1px solid ${c.required ? 'rgba(224,92,122,0.2)' : 'var(--border)'};
+                  background:${checked ? 'rgba(0,212,170,0.05)' : 'transparent'};
+                  transition:background 0.15s;">
+                  <input type="checkbox" ${checked ? 'checked' : ''}
+                    style="accent-color:var(--cyan);cursor:pointer;margin-top:2px;flex-shrink:0;"
+                    onchange="window.__methods?.toggleCheck('${m.id}','${c.id}',this.checked)">
+                  <div style="flex:1;">
+                    <div style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px;">
+                      ${c.label}
+                      ${c.required ? '<span style="font-size:9px;color:var(--rose);font-family:var(--font-mono);border:1px solid rgba(224,92,122,0.4);padding:1px 5px;border-radius:3px;">必做</span>' : ''}
+                    </div>
+                    <div style="font-size:11px;color:var(--text-faint);margin-top:3px;">${c.desc}</div>
+                  </div>
+                </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
+
       <!-- AI action buttons -->
       <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:16px;">
         <button class="btn btn-primary btn-sm"
-          onclick="window.__copilot?.askCopilot('请详细解释「${m.name}」的核心原理、适用场景和主要局限性，并给出一个经济学研究的具体例子')">
+          onclick="window.__copilot?.askCopilot('请详细解释「${m.name}」的核心原理、适用场景和主要局限性，并给出一个经济学研究的具体例子', '研究方法库', true)">
           🤖 深度解析
         </button>
         <button class="btn btn-ghost btn-sm"
-          onclick="window.__copilot?.askCopilot('在ESG政策效应研究中，「${m.name}」是否合适？请分析优劣并建议最佳实践')">
+          onclick="window.__copilot?.askCopilot('在ESG政策效应研究中，「${m.name}」是否合适？请分析优劣并建议最佳实践', '研究方法库', true)">
           适用性评估
         </button>
         <button class="btn btn-ghost btn-sm"
-          onclick="window.__copilot?.askCopilot('请给出使用「${m.name}」的Python和R代码框架，包括关键假设检验步骤')">
+          onclick="window.__copilot?.askCopilot('请给出使用「${m.name}」的Python和R代码框架，包括关键假设检验步骤', '研究方法库', true)">
           代码框架
         </button>
         <button class="btn btn-ghost btn-sm"
-          onclick="window.__copilot?.askCopilot('「${m.name}」最常见的误用和陷阱是什么？如何避免？')">
+          onclick="window.__copilot?.askCopilot('「${m.name}」最常见的误用和陷阱是什么？如何避免？', '研究方法库', true)">
           避坑指南
         </button>
       </div>
     </div>`;
 
-  // Scroll to detail
-  det.scrollIntoView({ behavior: 'smooth', block: 'start' });
+/* ── Checks helpers ── */
+function _checksKey(methodId) { return `nexres:checks:${methodId}`; }
 
-  // Notify copilot
+function _loadChecks(methodId) {
+  try { return JSON.parse(localStorage.getItem(_checksKey(methodId))) ?? {}; }
+  catch { return {}; }
+}
+
+function _isChecked(methodId, checkId) {
+  return !!_loadChecks(methodId)[checkId];
+}
+
+function _checksProgress(m) {
+  if (!m.checks?.length) return '';
+  const done = m.checks.filter(c => _isChecked(m.id, c.id)).length;
+  const req  = m.checks.filter(c => c.required).length;
+  const reqDone = m.checks.filter(c => c.required && _isChecked(m.id, c.id)).length;
+  return `必做 ${reqDone}/${req} · 全部 ${done}/${m.checks.length}`;
+}
+
+function toggleCheck(methodId, checkId, checked) {
+  const state = _loadChecks(methodId);
+  state[checkId] = checked;
+  localStorage.setItem(_checksKey(methodId), JSON.stringify(state));
+  // update progress label
+  const m = getMethodById(methodId);
+  const el = document.getElementById(`checks-progress-${methodId}`);
+  if (el && m) el.textContent = _checksProgress(m);
+}
+
+function reportChecks(methodId) {
+  const m = getMethodById(methodId);
+  if (!m?.checks?.length) return;
+  const state = _loadChecks(methodId);
+  const lines = m.checks.map(c =>
+    `${state[c.id] ? '✅' : '❌'} ${c.label}${c.required ? '（必做）' : ''}：${c.desc}`
+  ).join('\n');
   window.__copilot?.askCopilot(
-    `我正在学习「${m.name}」，请给我一个最重要的使用注意事项。`,
-    `研究方法库 - ${m.name}`
+    `我在使用「${m.name}」，以下是我的检验完成情况：\n\n${lines}\n\n请评估我的检验是否充分，对未完成的必做项给出具体操作建议。`,
+    '研究方法库 - 检验报告',
+    true
   );
 }
 
-window.__methods = { init, filter, showDetail };
+window.__methods = { init, filter, showDetail, toggleCheck, reportChecks };

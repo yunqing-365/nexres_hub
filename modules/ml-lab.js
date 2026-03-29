@@ -27,32 +27,27 @@ export function init() {
         onclick="window.__mllab?.switchTab('gd',this)">梯度下降</div>
       <div class="module-tab" data-tab="overfit"
         onclick="window.__mllab?.switchTab('overfit',this)">过拟合探索</div>
-      <div class="module-tab" data-tab="arch"
-        onclick="window.__mllab?.switchTab('arch',this)">网络架构</div>
-     <div class="module-tab" data-tab="optim"
-      onclick="window.__mllab?.switchTab('optim',this)">数值优化 (共轭梯度)</div>
+      <div class="module-tab" data-tab="optim"
+        onclick="window.__mllab?.switchTab('optim',this)">数值优化</div>
     </div>
 
     <div id="ml-gd">      ${_gdHTML()}</div>
     <div id="ml-overfit"  style="display:none;">${_overfitHTML()}</div>
-    <div id="ml-arch"     style="display:none;">${_archHTML()}</div>`;
-    <div id="ml-optim" style="display:none;">${_optimHTML()}</div>
+    <div id="ml-optim"    style="display:none;">${_optimHTML()}</div>`;
   _initEpochMeter();
   _renderBaseline();
 }
 
 /* ── Tab switching ── */
 function switchTab(tab, el) {
-  // 增加 'optim' 到数组中
-  ['gd', 'overfit', 'arch', 'optim'].forEach(t => {
+  ['gd', 'overfit', 'optim'].forEach(t => {
     document.getElementById(`ml-${t}`).style.display = t === tab ? '' : 'none';
   });
   document.querySelectorAll(`#${CONTAINER} .module-tab`).forEach(t => t.classList.remove('active'));
   el?.classList.add('active');
   if (tab === 'gd') { _initEpochMeter(); _renderBaseline(); }
   if (tab === 'overfit') _initOverfit();
-  if (tab === 'arch') _initArch();
-  if (tab === 'optim') _initOptim(); // 新增这行
+  if (tab === 'optim') _initOptim();
 }
 
 /* ════════════════════════════════
@@ -216,12 +211,6 @@ function runGD() {
 
   // Record snapshot
   _addSnapshot(lr, epochs, lambda, finalLoss, diverged);
-
-  // AI commentary
-  window.__copilot?.askCopilot(
-    `我刚用学习率 ${lr}、${epochs} 轮 Epoch、λ=${lambda} 跑了梯度下降。结果是 ${diverged ? '发散' : `Final Loss = ${finalLoss}`}。请解释这个结果的原因，并给出优化建议。`,
-    'ML 实验室'
-  );
 }
 
 function _gdExplanation(lr, epochs, pathLoss, finalLoss, diverged) {
@@ -266,7 +255,13 @@ function _addSnapshot(lr, epochs, lambda, finalLoss, diverged) {
     <td>${epochs}</td>
     <td>${lambda.toFixed(2)}</td>
     <td style="color:${diverged ? 'var(--rose)' : 'var(--cyan)'};">${diverged ? '发散' : finalLoss}</td>
-    <td><span class="tag ${diverged ? 'tag-rose' : 'tag-cyan'}">${diverged ? '梯度爆炸' : '稳定收敛'}</span></td>`;
+    <td><span class="tag ${diverged ? 'tag-rose' : 'tag-cyan'}">${diverged ? '梯度爆炸' : '稳定收敛'}</span></td>
+    <td>
+      <button class="btn btn-ghost btn-sm" style="font-size:10px;white-space:nowrap;"
+        onclick="window.__mllab?.saveToExpLog('gd', ${lr}, ${epochs}, ${lambda}, '${diverged ? '发散' : finalLoss}', ${diverged})">
+        📋 存入记录本
+      </button>
+    </td>`;
   tbody.appendChild(tr);
 }
 
@@ -366,7 +361,11 @@ function runOverfit() {
     : _polyDeg >= 8
     ? `📈 <strong>过拟合（高方差）：</strong>d=${_polyDeg} 次多项式过于复杂，开始拟合噪声而非信号。训练误差很低但泛化性差。<div class="hint">💡 解决方案：增加正则化（Ridge/Lasso）或增大样本量</div>`
     : `✅ <strong>拟合良好：</strong>d=${_polyDeg} 次多项式在偏差-方差之间取得平衡，曲线平滑且接近真实函数。`;
-  document.getElementById('overfit-explanation').innerHTML = expl;
+  document.getElementById('overfit-explanation').innerHTML = expl +
+    `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="window.__copilot?.askCopilot('多项式次数 d=${_polyDeg}，样本量 ${_nSamples}，当前拟合状态：${_polyDeg <= 2 ? '欠拟合' : _polyDeg >= 8 ? '过拟合' : '良好'}。请解释偏差-方差权衡，并给出改进建议。', 'ML实验室', true)">🤖 问 AI</button>
+      <button class="btn btn-primary btn-sm" onclick="window.__mllab?.saveOverfitToExpLog()">📋 存入记录本</button>
+    </div>`;
 }
 
 function resetOverfit() {
@@ -435,7 +434,7 @@ function _archHTML() {
         </div>
         <div style="display:flex;align-items:flex-end;">
           <button class="btn btn-ghost btn-sm"
-            onclick="window.__copilot?.askCopilot('当我增加神经网络的层数和宽度时，参数量如何变化？各自对模型能力的影响有何不同？')">
+            onclick="window.__copilot?.askCopilot('当我增加神经网络的层数和宽度时，参数量如何变化？各自对模型能力的影响有何不同？', 'ML实验室', true)">
             🤖 AI 解析深度 vs 宽度
           </button>
         </div>
@@ -619,8 +618,35 @@ function resetOptim() {
   document.getElementById('optim-explanation').innerHTML = '点击上方按钮观察算法演进轨迹...';
 }
 
+/* ── Save to ExpLog helpers ── */
+function saveToExpLog(type, lr, epochs, lambda, finalLoss, diverged) {
+  window.__shell?.switchTab('explog');
+  setTimeout(() => {
+    window.__explog?.prefillForm({
+      name:    `梯度下降实验 #${_snapCount} (lr=${lr})`,
+      method:  '梯度下降优化',
+      params:  `学习率 η=${lr}；Epoch=${epochs}；L2 λ=${lambda}；初始点 w=-4.5`,
+      result:  diverged ? '发散（梯度爆炸）' : `Final Loss = ${finalLoss}`,
+    });
+  }, 80);
+}
+
+function saveOverfitToExpLog() {
+  const status = _polyDeg <= 2 ? '欠拟合' : _polyDeg >= 8 ? '过拟合' : '拟合良好';
+  window.__shell?.switchTab('explog');
+  setTimeout(() => {
+    window.__explog?.prefillForm({
+      name:    `多项式回归实验 d=${_polyDeg}`,
+      method:  '随机森林 / GBDT',
+      params:  `多项式次数 d=${_polyDeg}；样本量 N=${_nSamples}`,
+      result:  status,
+    });
+  }, 80);
+}
+
 window.__mllab = {
   init, switchTab, updateParam, runGD, resetGD,
   updateOverfit, runOverfit, resetOverfit, drawArch,
-  runOptim, resetOptim // 暴露新增的数值优化函数
+  runOptim, resetOptim,
+  saveToExpLog, saveOverfitToExpLog,
 };

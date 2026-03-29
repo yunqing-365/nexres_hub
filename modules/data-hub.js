@@ -168,11 +168,11 @@ function _renderNav(container) {
             🤖 让 AI 帮你了解这类数据的获取、清洗和使用方法
           </div>
           <button class="btn btn-ghost btn-sm"
-            onclick="window.__copilot?.askCopilot('请详细介绍「${variable.name}」数据的：1）主要来源和可靠性对比 2）常见清洗步骤 3）在经管研究中的典型用法和注意事项')">
+            onclick="window.__copilot?.askCopilot('请详细介绍「${variable.name}」数据的：1）主要来源和可靠性对比 2）常见清洗步骤 3）在经管研究中的典型用法和注意事项', '数据中心', true)">
             📖 AI 讲解：${variable.name}
           </button>
           <button class="btn btn-ghost btn-sm" style="margin-left:8px;"
-            onclick="window.__copilot?.askCopilot('在经管学术论文中，「${variable.name}」最常用作哪类研究的核心变量或控制变量？请举3篇代表性文献说明。')">
+            onclick="window.__copilot?.askCopilot('在经管学术论文中，「${variable.name}」最常用作哪类研究的核心变量或控制变量？请举3篇代表性文献说明。', '数据中心', true)">
             🎓 典型文献用法
           </button>
         </div>
@@ -243,6 +243,13 @@ function _datasetCard(ds, i) {
           width:${{'收集中':20,'已清洗':50,'建模中':75,'完成':100}[ds.status]??0}%;
           transition:width 0.4s;"></div>
       </div>
+      <!-- Flow action -->
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+        <button class="btn btn-primary btn-sm" style="font-size:11px;"
+          onclick="window.__datahub?.startExperiment(${i})">
+          → 用此数据新建实验
+        </button>
+      </div>
     </div>
   `;
 }
@@ -297,7 +304,7 @@ function _renderGuide(container) {
             💡 ${g.tip}
           </div>
           <button class="btn btn-ghost btn-sm" style="margin-top:10px;"
-            onclick="window.__copilot?.askCopilot('${g.aiPrompt.replace(/'/g, "\\'")}')">
+            onclick="window.__copilot?.askCopilot('${g.aiPrompt.replace(/'/g, "\\'")}', '数据中心', true)">
             🤖 让 AI 详细讲解
           </button>
         </div>
@@ -498,8 +505,30 @@ function filterDatasets(status) {
   _renderTab();
 }
 
+function startExperiment(i) {
+  const ds = _datasets[i];
+  if (!ds) return;
+  const params = [
+    ds.variable ? `变量：${ds.variable}` : '',
+    ds.period   ? `时间区间：${ds.period}` : '',
+    ds.obs      ? `样本量：${ds.obs}` : '',
+    ds.format   ? `格式：${ds.format}` : '',
+    ds.notes    ? `备注：${ds.notes}` : '',
+  ].filter(Boolean).join('；');
+
+  window.__shell?.switchTab('explog');
+  // slight delay to let explog init before prefilling
+  setTimeout(() => {
+    window.__explog?.prefillForm({
+      name:    `${ds.name} 分析`,
+      project: ds.name,
+      params,
+    });
+  }, 80);
+}
+
 window.__datahub = {
   init, switchTab, selectCat, selectVar, onSearch, filterDatasets,
   openAddDataset, closeModal, saveDataset, quickAddDataset,
-  editDataset, deleteDataset,
+  editDataset, deleteDataset, startExperiment,
 };

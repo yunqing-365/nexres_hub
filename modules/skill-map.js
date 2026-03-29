@@ -45,7 +45,7 @@ export function init() {
       <div style="display:flex;gap:8px;">
         <button class="btn btn-ghost btn-sm" onclick="window.__skillmap?.resetSkills()">↺ 重置</button>
         <button class="btn btn-primary btn-sm"
-          onclick="window.__copilot?.askCopilot('根据我的技能图谱（因果推断85分、计量经济70分、机器学习60分、编程55分、论文写作75分），请为我制定一份4周的科研能力提升计划，每天2小时。', '技能图谱')">
+          onclick="window.__copilot?.askCopilot('根据我的技能图谱（因果推断85分、计量经济70分、机器学习60分、编程55分、论文写作75分），请为我制定一份4周的科研能力提升计划，每天2小时。', '技能图谱', true)">
           🤖 AI 制定提升计划
         </button>
       </div>
@@ -79,7 +79,7 @@ export function init() {
         <div class="card-title">📍 里程碑追踪</div>
         <div id="milestones"></div>
         <button class="btn btn-ghost btn-sm" style="margin-top:10px;"
-          onclick="window.__copilot?.askCopilot('如何知道我的因果推断能力已经达到了发表顶级期刊的水平？有哪些具体的检测标准？')">
+          onclick="window.__copilot?.askCopilot('如何知道我的因果推断能力已经达到了发表顶级期刊的水平？有哪些具体的检测标准？', '技能图谱', true)">
           🤖 如何评估自己的水平？
         </button>
       </div>

@@ -11,6 +11,7 @@ import { mdToHtml } from '../utils/formatters.js';   // Bug Fix #1 & #2
 /* ── State ── */
 let _currentMode = 'tutor';
 let _currentModule = 'dashboard';
+let _silentMode = true;  // default: don't auto-fire AI on module actions
 
 /* ── Mode labels ── */
 const MODE_LABELS = {
@@ -35,10 +36,16 @@ function renderCopilot() {
     <div class="copilot">
       <div class="copilot-header">
         <div class="copilot-avatar">🧠</div>
-        <div>
+        <div style="flex:1;">
           <div class="copilot-name">Nexus</div>
           <div class="copilot-status"><span class="status-dot"></span>AI 导师 · 在线</div>
         </div>
+        <button id="silent-toggle" title="切换自动触发"
+          onclick="window.__copilot?.toggleSilent()"
+          style="background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;
+                 cursor:pointer;font-size:11px;color:var(--text-faint);transition:all 0.15s;">
+          ${_silentMode ? '🔕 静默' : '🔔 自动'}
+        </button>
       </div>
 
       <div class="context-bar">${chips}</div>
@@ -96,9 +103,15 @@ function showTyping() {
   return id;
 }
 
-/** 向 Claude 发送并显示响应 */
-export async function askCopilot(text, context = '') {
+/** 向 Claude 发送并显示响应
+ *  @param {string} text
+ *  @param {string} context
+ *  @param {boolean} [force=false] — 传 true 时忽略静默模式，直接发送（用户主动触发）
+ */
+export async function askCopilot(text, context = '', force = false) {
   if (!text.trim()) return;
+  // 静默模式下，非用户主动触发的调用直接忽略
+  if (_silentMode && !force) return;
   addMessage('user', text);
   const typingId = showTyping();
   try {
@@ -124,17 +137,27 @@ function setMode(mode, el) {
   addMessage('sys', `已切换至 <strong>${MODE_LABELS[mode] ?? mode}</strong> 模式。`);
 }
 
-/** 读取输入框并发送 */
+/** 读取输入框并发送（用户主动，忽略静默模式） */
 function send() {
   const inp = document.getElementById('copilot-in');
   const val = inp?.value.trim();
   if (!val) return;
   inp.value = '';
-  askCopilot(val);
+  askCopilot(val, '', true);
+}
+
+/** 切换静默模式 */
+function toggleSilent() {
+  _silentMode = !_silentMode;
+  const btn = document.getElementById('silent-toggle');
+  if (btn) btn.textContent = _silentMode ? '🔕 静默' : '🔔 自动';
+  addMessage('sys', _silentMode
+    ? '已开启静默模式，AI 不会自动响应模块操作，点击各模块的「问 AI」按钮手动触发。'
+    : '已关闭静默模式，AI 将自动响应模块操作。');
 }
 
 /* Expose to global for inline onclick handlers */
-window.__copilot = { addMessage, askCopilot, setMode, send, setCurrentModule };
+window.__copilot = { addMessage, askCopilot, setMode, send, setCurrentModule, toggleSilent };
 
 // Auto-render
 renderCopilot();
